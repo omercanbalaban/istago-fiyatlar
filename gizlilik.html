@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>istago – Gizlilik Politikası</title>
+<style>
+  :root { --bg:#fff; --fg:#1d1d1f; --muted:#6e6e73; --line:#e5e5ea; --accent:#0a7d4f; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#000; --fg:#f5f5f7; --muted:#a1a1a6; --line:#2c2c2e; --accent:#30d158; } }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:32px 16px 64px; }
+  h1 { font-size:28px; margin:0 0 4px; }
+  h2 { font-size:19px; margin:32px 0 8px; }
+  p, li { color:var(--fg); }
+  .muted { color:var(--muted); font-size:14px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; margin:8px 0; }
+  th, td { text-align:left; vertical-align:top; padding:8px 6px; border-bottom:1px solid var(--line); }
+  a { color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+<h1>istago Gizlilik Politikası</h1>
+<p class="muted">Son güncelleme: 10 Kasım 2026</p>
+
+<p>istago, sürüşünüzü kaydeden, yakıt tüketiminizi tahmin eden ve radar, hız limiti ve ortalama hız koridorları hakkında uyaran bir iPhone uygulamasıdır. Bu sayfa, uygulamanın hangi verileri kullandığını ve nereye gönderdiğini açıklar.</p>
+
+<h2>Kısaca</h2>
+<ul>
+  <li>Hesap açmanız gerekmez; adınız, e-postanız veya telefon numaranız istenmez.</li>
+  <li>Yolculuklarınız, araç bilgileriniz, kayıtlı yerleriniz, fotoğraflarınız ve yol kamerası videolarınız <strong>yalnızca cihazınızda</strong> saklanır.</li>
+  <li>Reklam yoktur, sizi izleyen (tracking) veya analiz yapan bir araç kullanılmaz, verileriniz satılmaz ya da paylaşılmaz.</li>
+  <li>istago'nun kendine ait bir sunucusu yoktur.</li>
+</ul>
+
+<h2>Cihazınızda kalan veriler</h2>
+<ul>
+  <li><strong>Konum ve yolculuk kayıtları:</strong> Hız, rota, mesafe, süre, tüketim tahmini ve sürüş puanı. Yolculuğun otomatik başlatılabilmesi için konum, izin verirseniz arka planda da kullanılır.</li>
+  <li><strong>Hareket verileri:</strong> Araçta olduğunuzu algılamak için iPhone'un hareket sensörü kullanılır; bu veri kaydedilmez.</li>
+  <li><strong>Araç bilgileri ve ayarlar:</strong> Seçtiğiniz araç, yakıt türü ve tercihleriniz.</li>
+  <li><strong>Kamera:</strong> Yol kamerası görünümü ve isteğe bağlı video kaydı için kullanılır. Videolar uygulamada kalır; yalnızca siz isterseniz Fotoğraflar'a kaydedilir.</li>
+  <li><strong>Araç fotoğrafı:</strong> Seçtiğiniz fotoğraf uygulamanın kendi klasöründe saklanır.</li>
+  <li><strong>Müzik:</strong> Sürüş ekranındaki müzik kontrolleri yalnızca Music uygulamasının çalan parçasını gösterir ve yönetir.</li>
+</ul>
+<p>Uygulamayı sildiğinizde bu verilerin tamamı cihazınızdan silinir. iPhone yedeklemesini açtıysanız veriler Apple'ın iCloud veya bilgisayar yedeğine dahil olabilir.</p>
+
+<h2>Cihazdan çıkan istekler</h2>
+<p>Bazı özellikler için uygulama, aşağıdaki hizmetlere konumunuza bağlı istekler gönderir. Bu isteklerde kimliğinizi belirten hiçbir bilgi bulunmaz ve istago bu verileri saklamaz. Hizmetler, internetteki her istekte olduğu gibi IP adresinizi görebilir.</p>
+<table>
+  <tr><th>Hizmet</th><th>Ne gönderilir</th><th>Neden</th></tr>
+  <tr><td>Apple Haritalar (MapKit)</td><td>Arama metni, konum, hedef</td><td>Yer arama, rota ve trafik bilgisi</td></tr>
+  <tr><td>OpenStreetMap Overpass sunucuları (overpass-api.de, overpass.kumi.systems, maps.mail.ru, overpass.private.coffee)</td><td>Bulunduğunuz bölgenin yaklaşık sınırları</td><td>Hız limitleri, şerit bilgisi ve yol verisi</td></tr>
+  <tr><td>Open-Meteo (api.open-meteo.com)</td><td>Rota üzerindeki noktaların koordinatları</td><td>Yükseklik ve eğim bilgisi ile tüketim tahmini</td></tr>
+  <tr><td>GitHub Pages (omercanbalaban.github.io)</td><td>Konum gönderilmez</td><td>Güncel yakıt fiyatlarının indirilmesi</td></tr>
+</table>
+<p>Bu hizmetlerin kendi gizlilik politikaları geçerlidir.</p>
+
+<h2>İzinler</h2>
+<p>Konum, hareket, kamera, Fotoğraflar ve bildirim izinlerini istediğiniz zaman iPhone'da <em>Ayarlar → istago</em> bölümünden değiştirebilirsiniz. Bir izni vermezseniz yalnızca ona bağlı özellik çalışmaz.</p>
+
+<h2>Çocuklar</h2>
+<p>istago çocuklara yönelik değildir ve bilerek kimseden kişisel veri toplamaz.</p>
+
+<h2>Değişiklikler</h2>
+<p>Bu politika değişirse güncel hali bu sayfada yayımlanır ve üstteki tarih güncellenir.</p>
+
+<h2>İletişim</h2>
+<p>Sorularınız için: <a href="mailto:omercanbalaban@gmail.com">omercanbalaban@gmail.com</a></p>
+
+<p class="muted">Harita ve yol verileri © OpenStreetMap katkıcıları (ODbL).</p>
+</main>
+</body>
+</html>
