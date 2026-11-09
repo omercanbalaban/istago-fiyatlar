@@ -1,0 +1,17 @@
+{
+  "not": "ÖRNEK DEĞERLER. Yayınlamadan önce güncel fiyatları girin. Sadece turkiyeGeneli yeterli; il ve ilçe kayıtları isteğe bağlı. Yazılmayan fiyat bir üst seviyeden alınır (ilçe -> il -> Türkiye geneli).",
+  "guncellenme": "2026-11-09 10:00",
+  "turkiyeGeneli": { "benzin": 45.10, "motorin": 47.20, "lpg": 24.90 },
+  "iller": {
+    "İstanbul": {
+      "benzin": 45.30,
+      "motorin": 47.40,
+      "lpg": 25.10,
+      "ilceler": {
+        "Kadıköy": { "benzin": 45.35 }
+      }
+    },
+    "Ankara": { "benzin": 45.60, "motorin": 47.70, "lpg": 25.00 },
+    "İzmir": { "benzin": 45.70, "motorin": 47.80 }
+  }
+}
