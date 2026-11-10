@@ -1,0 +1,37 @@
+# Akaryakıt fiyatlarını 3 saatte bir kendiliğinden günceller.
+# Fiyat değişmemişse hiçbir şey yapmaz; değişmişse yakit-fiyatlari.json'u commit'leyip gönderir.
+# %15'ten büyük değişimde ya da kaynak sayfa okunamazsa iş başarısız olur ve GitHub e-posta gönderir;
+# o durumda fiyatları kontrol edip gerekirse elle "python3 guncelle.py --gonder --zorla" çalıştırın.
+name: Fiyat güncelle
+
+on:
+  schedule:
+    - cron: "10 */3 * * *"   # UTC; Türkiye saatiyle 03:10, 06:10, 09:10 ...
+  workflow_dispatch:          # Actions sekmesinden elle çalıştırmak için
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/fiyat-guncelle.yml"
+      - "guncelle.py"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fiyat-guncelle
+  cancel-in-progress: false
+
+jobs:
+  guncelle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TZ: Europe/Istanbul
+    steps:
+      - uses: actions/checkout@v4
+      - name: Git kimliği
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Fiyatları güncelle ve gönder
+        run: python3 guncelle.py --gonder
