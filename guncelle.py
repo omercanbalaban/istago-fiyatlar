@@ -206,6 +206,7 @@ def json_yaz(iller, anadolu, ilceler):
         'farklı olan ilçeleri içerir. turkiyeGeneli = 81 ilin medyanı, sadece il bulunamazsa kullanılır. '
         'Bu dosya guncelle.py ile üretilir.",',
         f'  "guncellenme": "{simdi}",',
+        f'  "sonKontrol": "{simdi} (fiyatlar güncellendi)",',
         f'  "turkiyeGeneli": {obje(genel)},',
         '  "iller": {',
     ]
@@ -259,6 +260,35 @@ def git(*args):
     return sonuc.stdout.strip()
 
 
+def kontrolu_kaydet(gonder):
+    """Fiyat değişmediğinde günde bir kez dosyaya "sonKontrol" yazar ve gönderir.
+
+    Böylece dosyadan son kontrolün ne zaman yapıldığı görülür ve depo her gün bir commit alır;
+    GitHub 60 gün commit olmayan depolarda zamanlanmış işleri durdurduğu için bu önemlidir.
+    """
+    metin = yayindaki_metin()
+    bugun = datetime.date.today().isoformat()
+    eski = re.search(r'"sonKontrol":\s*"([^"]*)"', metin or "")
+    if not gonder or not metin or (eski and eski.group(1).startswith(bugun)):
+        print("Fiyatlar yayındakiyle aynı; dosyaya dokunulmadı.")
+        return 0
+
+    satir = f'"sonKontrol": "{datetime.datetime.now():%Y-%m-%d %H:%M} (fiyat değişmedi)"'
+    if eski:
+        yeni = metin[:eski.start()] + satir + metin[eski.end():]
+    else:
+        yeni, adet = re.subn(r'(\n(\s*)"guncellenme":[^\n]*\n)', lambda m: m.group(1) + m.group(2) + satir + ",\n", metin, count=1)
+        if not adet:
+            raise Hata("sonKontrol eklenecek yer bulunamadı.")
+    json.loads(yeni)  # geçerli JSON olduğundan emin ol
+    DOSYA.write_text(yeni, encoding="utf-8")
+    git("add", DOSYA.name)
+    git("commit", "-q", "-m", f"Kontrol {bugun}: fiyat değişmedi")
+    git("push", "-q")
+    print(f"Fiyatlar aynı; {bugun} kontrolü dosyaya yazılıp gönderildi.")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description="yakit-fiyatlari.json dosyasını yeniler.")
     ap.add_argument("--gonder", action="store_true", help="commit'leyip GitHub'a gönder")
@@ -295,8 +325,7 @@ def main():
                     buyuk.append(f"{il} {yakit}: {eski_deger:.2f} -> {deger:.2f}")
 
     if not degisen:
-        print("Fiyatlar yayındakiyle aynı; dosyaya dokunulmadı.")
-        return 0
+        return kontrolu_kaydet(args.gonder)
 
     illerde = sorted({d[0].split(" / ")[0] for d in degisen})
     print(f"{len(illerde)} ilde {len(degisen)} fiyat değişti.")
