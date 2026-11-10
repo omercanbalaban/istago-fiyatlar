@@ -1,7 +1,7 @@
 {
   "not": "KDV dahil pompa fiyatları (₺/L). İstanbul il fiyatı Avrupa yakası. ilceler yalnızca il fiyatından farklı olan ilçeleri içerir. turkiyeGeneli = 81 ilin medyanı, sadece il bulunamazsa kullanılır. Bu dosya guncelle.py ile üretilir.",
   "guncellenme": "2026-11-10 15:15",
-  "sonKontrol": "2026-11-10 15:26 (fiyat değişmedi)",
+  "sonKontrol": "2026-11-11 00:17 (fiyat değişmedi)",
   "turkiyeGeneli": { "benzin": 76.40, "motorin": 97.10, "lpg": 51.01 },
   "iller": {
     "Adana": { "benzin": 76.40, "motorin": 97.10, "lpg": 51.11 },
