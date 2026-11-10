@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""yakit-fiyatlari.json dosyasını Petrol Ofisi'nin il bazlı fiyat listesinden yeniler.
+"""yakit-fiyatlari.json dosyasını dağıtıcının il ve ilçe bazlı fiyat listesinden yeniler.
 
 Kullanım (bu klasörün içinde):
     python3 guncelle.py            Fiyatları indirir, dosyayı yeniler, değişenleri gösterir.
@@ -11,12 +11,15 @@ Yalnızca Python'un kendi kütüphanelerini kullanır; ek kurulum gerekmez.
 """
 
 import argparse
+import concurrent.futures
 import datetime
 import json
 import re
 import statistics
 import subprocess
 import sys
+import time
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -40,6 +43,15 @@ ANADOLU_ILCELERI = ["Adalar", "Ataşehir", "Beykoz", "Çekmeköy", "Kadıköy", 
 TAKMA_ADLAR = {"AFYON": "Afyonkarahisar", "KMARAS": "Kahramanmaraş", "ICEL": "Mersin", "URFA": "Şanlıurfa"}
 
 
+# Kaynakta ilçe adları Türkçe karaktersiz büyük harfle gelir (ör. GOKCEADA). Uygulama eşleştirmede
+# Türkçe karakterlere bakmaz; bu tablo yalnızca ekranda doğru görünmesi içindir. Eksik olan ad
+# "Gokceada" gibi yazılır, eşleşme yine çalışır.
+ILCE_ADLARI = {"MARMARAADASI": "Marmaraadası", "GOKCEADA": "Gökçeada", "BOZCAADA": "Bozcaada",
+               "FETHIYE": "Fethiye", "DALAMAN": "Dalaman", "ORTACA": "Ortaca", "SEYDIKEMER": "Seydikemer",
+               "KOYCEGIZ": "Köyceğiz", "MARMARIS": "Marmaris", "BODRUM": "Bodrum", "DATCA": "Datça",
+               "AYVALIK": "Ayvalık", "BANDIRMA": "Bandırma", "ERDEK": "Erdek", "GELIBOLU": "Gelibolu"}
+
+
 class Hata(Exception):
     pass
 
@@ -52,10 +64,71 @@ def sadelestir(metin):
     return re.sub(r"[^A-Z]", "", metin)
 
 
-def sayfayi_indir():
-    istek = urllib.request.Request(KAYNAK_URL, headers={"User-Agent": "Mozilla/5.0 (istago fiyat guncelleme)"})
-    with urllib.request.urlopen(istek, timeout=30) as yanit:
-        return yanit.read().decode("utf-8")
+def sayfayi_indir(url=KAYNAK_URL):
+    istek = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (istago fiyat guncelleme)"})
+    for deneme in range(3):
+        try:
+            with urllib.request.urlopen(istek, timeout=30) as yanit:
+                return yanit.read().decode("utf-8")
+        except OSError:
+            if deneme == 2:
+                raise
+            time.sleep(2)
+
+
+def satirlari_oku(html):
+    """Fiyat tablosundaki [(ad, {yakıt: fiyat})] satırları (ad kaynaktaki gibi, büyük harf)."""
+    satirlar = []
+    for m in re.finditer(r'<tr class="price-row[^>]*data-disctrict-name="([^"]*)"[^>]*>(.*?)</tr>', html, re.S):
+        hucreler = re.findall(r"<td[^>]*>(.*?)</td>", m.group(2), re.S)
+        if len(hucreler) < 7:
+            continue
+        f = {"benzin": fiyat(hucreler[1]), "motorin": fiyat(hucreler[2]), "lpg": fiyat(hucreler[6])}
+        satirlar.append((m.group(1).strip(), {k: v for k, v in f.items() if v is not None}))
+    return satirlar
+
+
+def ilce_adi(ad):
+    anahtar = sadelestir(ad)
+    if anahtar in ILCE_ADLARI:
+        return ILCE_ADLARI[anahtar]
+    return " ".join(p[:1] + p[1:].lower() for p in ad.replace(".", ". ").split())
+
+
+def ilceleri_oku(html, iller):
+    """Her ilin sayfasından, il fiyatından farklı olan ilçeleri döndürür: {il: {ilçe: fiyatlar}}.
+
+    İlçelerin büyük çoğunluğu il fiyatıyla aynıdır; uygulama ilçe yoksa il fiyatını kullandığı için
+    yalnızca farklı olanlar yazılır. İstanbul Anadolu yakası ANADOLU_ILCELERI ile ayrıca ele alınır.
+    """
+    by_fold = {sadelestir(il): il for il in ILLER}
+    sayfalar = {}
+    for yol in sorted(set(re.findall(r'"(/akaryakit-fiyatlari/([a-z-]+)-akaryakit-fiyatlari)"', html))):
+        anahtar = yol[1].replace("-", "").upper()
+        il = by_fold.get(anahtar) or TAKMA_ADLAR.get(anahtar)
+        if il and il != "İstanbul":
+            sayfalar[il] = urllib.parse.urljoin(KAYNAK_URL, yol[0])
+    eksik = [il for il in ILLER if il != "İstanbul" and il not in sayfalar]
+    if eksik:
+        raise Hata(f"Şu illerin ilçe sayfası bulunamadı: {eksik}")
+
+    def oku(il):
+        satirlar = satirlari_oku(sayfayi_indir(sayfalar[il]))
+        if not satirlar:
+            raise Hata(f"{il} ilçe tablosu okunamadı; sayfa yapısı değişmiş olabilir.")
+        il_fiyati = iller[il]
+        farkli = {}
+        for ad, f in satirlar:
+            if sadelestir(ad) == sadelestir(il) or f == il_fiyati:
+                continue
+            for yakit, deger in f.items():
+                if not 10 <= deger <= 1000:
+                    raise Hata(f"{il} / {ad} {yakit} fiyatı mantıksız görünüyor: {deger}")
+            farkli[ilce_adi(ad)] = f
+        return il, farkli
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as havuz:
+        return {il: farkli for il, farkli in havuz.map(oku, sayfalar) if farkli}
 
 
 def fiyat(hucre):
@@ -70,7 +143,7 @@ def tabloyu_oku(html):
     """{il: {yakıt: fiyat}} ve İstanbul'un iki yakasını döndürür."""
     baslangic = html.find("table-with-tax")
     if baslangic < 0:
-        raise Hata("Fiyat tablosu bulunamadı; Petrol Ofisi sayfa yapısını değiştirmiş olabilir.")
+        raise Hata("Fiyat tablosu bulunamadı; kaynak sayfa yapısını değiştirmiş olabilir.")
     tablo = html[baslangic:html.find("</table>", baslangic)]
 
     basliklar = [re.sub(r"<[^>]+>", "", b).strip() for b in re.findall(r"<th[^>]*>(.*?)</th>", tablo, re.S)]
@@ -119,7 +192,7 @@ def obje(f):
     return "{ " + ", ".join(f'"{k}": {f[k]:.2f}' for k in YAKITLAR if k in f) + " }"
 
 
-def json_yaz(iller, anadolu):
+def json_yaz(iller, anadolu, ilceler):
     genel = {}
     for yakit in YAKITLAR:
         degerler = [f[yakit] for f in iller.values() if yakit in f]
@@ -129,9 +202,9 @@ def json_yaz(iller, anadolu):
     simdi = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     satirlar = [
         "{",
-        '  "not": "KDV dahil pompa fiyatları (₺/L). İstanbul il fiyatı Avrupa yakası; Anadolu yakası ilçeleri ayrı yazıldı. '
-        'turkiyeGeneli = 81 ilin medyanı, sadece il bulunamazsa kullanılır. Bu dosya guncelle.py ile üretilir.",',
-        f'  "kaynak": "Petrol Ofisi il bazlı fiyat listesi ({KAYNAK_URL.split("//")[1].removeprefix("www.")})",',
+        '  "not": "KDV dahil pompa fiyatları (₺/L). İstanbul il fiyatı Avrupa yakası. ilceler yalnızca il fiyatından '
+        'farklı olan ilçeleri içerir. turkiyeGeneli = 81 ilin medyanı, sadece il bulunamazsa kullanılır. '
+        'Bu dosya guncelle.py ile üretilir.",',
         f'  "guncellenme": "{simdi}",',
         f'  "turkiyeGeneli": {obje(genel)},',
         '  "iller": {',
@@ -139,12 +212,16 @@ def json_yaz(iller, anadolu):
     sirali = sorted(iller, key=sadelestir)
     for i, il in enumerate(sirali):
         virgul = "," if i < len(sirali) - 1 else ""
+        il_ilceleri = dict(ilceler.get(il, {}))
         if il == "İstanbul":
-            satirlar.append('    "İstanbul": {')
+            il_ilceleri.update({ilce: anadolu for ilce in ANADOLU_ILCELERI})
+        if il_ilceleri:
+            satirlar.append(f'    "{il}": {{')
             satirlar += [f'      "{k}": {iller[il][k]:.2f},' for k in YAKITLAR if k in iller[il]]
             satirlar.append('      "ilceler": {')
-            for j, ilce in enumerate(ANADOLU_ILCELERI):
-                satirlar.append(f'        "{ilce}": {obje(anadolu)}' + ("," if j < len(ANADOLU_ILCELERI) - 1 else ""))
+            adlar = list(il_ilceleri) if il == "İstanbul" else sorted(il_ilceleri, key=sadelestir)
+            for j, ilce in enumerate(adlar):
+                satirlar.append(f'        "{ilce}": {obje(il_ilceleri[ilce])}' + ("," if j < len(adlar) - 1 else ""))
             satirlar += ["      }", "    }" + virgul]
         else:
             satirlar.append(f'    "{il}": {obje(iller[il])}{virgul}')
@@ -170,10 +247,8 @@ def eski_fiyatlar(metin):
     sonuc = {}
     for il, kayit in veri.get("iller", {}).items():
         sonuc[il] = {k: kayit[k] for k in YAKITLAR if k in kayit}
-        ilceler = kayit.get("ilceler") or {}
-        if ilceler:
-            ilk = next(iter(ilceler.values()))
-            sonuc[f"{il} (ilçeler)"] = {k: ilk[k] for k in YAKITLAR if k in ilk}
+        for ilce, f in (kayit.get("ilceler") or {}).items():
+            sonuc[f"{il} / {ilce}"] = {k: f[k] for k in YAKITLAR if k in f}
     return sonuc, veri.get("turkiyeGeneli")
 
 
@@ -196,14 +271,20 @@ def main():
 
     html = Path(args.html).read_text(encoding="utf-8") if args.html else sayfayi_indir()
     iller, anadolu = tabloyu_oku(html)
+    ilceler = ilceleri_oku(html, iller)
     # Karşılaştırma her zaman yayındaki sürümle yapılır; önizlemede yazılmış ama
     # gönderilmemiş bir dosya, sonraki --gonder'i ve büyük değişim kontrolünü atlatamaz.
     eski, eski_genel = eski_fiyatlar(yayindaki_metin())
-    metin, genel = json_yaz(iller, anadolu)
+    metin, genel = json_yaz(iller, anadolu, ilceler)
 
     yeni = dict(iller)
-    yeni["İstanbul (ilçeler)"] = anadolu
+    yeni.update({f"İstanbul / {ilce}": anadolu for ilce in ANADOLU_ILCELERI})
+    for il, il_ilceleri in ilceler.items():
+        yeni.update({f"{il} / {ilce}": f for ilce, f in il_ilceleri.items()})
     degisen, buyuk = [], []
+    # Artık il fiyatıyla aynı olduğu için dosyadan çıkan ilçeler de değişiklik sayılır
+    for ad in eski.keys() - yeni.keys():
+        degisen.append((ad, "kayıt", "var", None))
     for il, f in yeni.items():
         onceki = eski.get(il, {})
         for yakit, deger in f.items():
@@ -217,13 +298,14 @@ def main():
         print("Fiyatlar yayındakiyle aynı; dosyaya dokunulmadı.")
         return 0
 
-    illerde = sorted({d[0] for d in degisen})
+    illerde = sorted({d[0].split(" / ")[0] for d in degisen})
     print(f"{len(illerde)} ilde {len(degisen)} fiyat değişti.")
     for yakit in YAKITLAR:
         once = (eski_genel or {}).get(yakit)
         print(f"  Türkiye geneli {yakit:8}: {once if once is not None else '-'} -> {genel.get(yakit, '-')}")
     for il, yakit, once, sonra in degisen[:8]:
-        print(f"  {il} {yakit}: {once if once is not None else '-'} -> {sonra:.2f}")
+        sonra = f"{sonra:.2f}" if sonra is not None else "kaldırıldı (il fiyatıyla aynı)"
+        print(f"  {il} {yakit}: {once if once is not None else '-'} -> {sonra}")
     if len(degisen) > 8:
         print(f"  ... ve {len(degisen) - 8} değişiklik daha")
 

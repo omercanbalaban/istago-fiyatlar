@@ -1,7 +1,6 @@
 {
-  "not": "KDV dahil pompa fiyatları (₺/L). İstanbul il fiyatı Avrupa yakası; Anadolu yakası ilçeleri ayrı yazıldı. turkiyeGeneli = 81 ilin medyanı, sadece il bulunamazsa kullanılır.",
-  "kaynak": "Petrol Ofisi il bazlı fiyat listesi (petrolofisi.com.tr/akaryakit-fiyatlari)",
-  "guncellenme": "2026-11-09 23:42",
+  "not": "KDV dahil pompa fiyatları (₺/L). İstanbul il fiyatı Avrupa yakası. ilceler yalnızca il fiyatından farklı olan ilçeleri içerir. turkiyeGeneli = 81 ilin medyanı, sadece il bulunamazsa kullanılır. Bu dosya guncelle.py ile üretilir.",
+  "guncellenme": "2026-11-10 15:15",
   "turkiyeGeneli": { "benzin": 76.40, "motorin": 97.10, "lpg": 51.01 },
   "iller": {
     "Adana": { "benzin": 76.40, "motorin": 97.10, "lpg": 51.11 },
@@ -15,7 +14,14 @@
     "Ardahan": { "benzin": 76.60, "motorin": 97.40, "lpg": 51.69 },
     "Artvin": { "benzin": 76.50, "motorin": 97.20, "lpg": 52.19 },
     "Aydın": { "benzin": 76.10, "motorin": 96.90, "lpg": 50.80 },
-    "Balıkesir": { "benzin": 76.20, "motorin": 97.00, "lpg": 50.20 },
+    "Balıkesir": {
+      "benzin": 76.20,
+      "motorin": 97.00,
+      "lpg": 50.20,
+      "ilceler": {
+        "Marmaraadası": { "benzin": 76.70, "motorin": 97.50, "lpg": 50.20 }
+      }
+    },
     "Bartın": { "benzin": 75.90, "motorin": 96.40, "lpg": 50.69 },
     "Batman": { "benzin": 77.00, "motorin": 97.80, "lpg": 51.64 },
     "Bayburt": { "benzin": 76.40, "motorin": 97.10, "lpg": 51.99 },
@@ -25,7 +31,15 @@
     "Bolu": { "benzin": 75.70, "motorin": 96.10, "lpg": 50.49 },
     "Burdur": { "benzin": 76.60, "motorin": 97.40, "lpg": 50.90 },
     "Bursa": { "benzin": 75.70, "motorin": 96.20, "lpg": 50.10 },
-    "Çanakkale": { "benzin": 76.20, "motorin": 97.00, "lpg": 50.30 },
+    "Çanakkale": {
+      "benzin": 76.20,
+      "motorin": 97.00,
+      "lpg": 50.30,
+      "ilceler": {
+        "Bozcaada": { "benzin": 77.40, "motorin": 98.30, "lpg": 50.30 },
+        "Gökçeada": { "benzin": 78.00, "motorin": 98.80, "lpg": 50.30 }
+      }
+    },
     "Çankırı": { "benzin": 76.00, "motorin": 96.70, "lpg": 50.99 },
     "Çorum": { "benzin": 76.20, "motorin": 96.90, "lpg": 50.89 },
     "Denizli": { "benzin": 76.40, "motorin": 97.10, "lpg": 50.60 },
@@ -82,7 +96,17 @@
     "Manisa": { "benzin": 75.90, "motorin": 96.70, "lpg": 50.70 },
     "Mardin": { "benzin": 77.00, "motorin": 97.80, "lpg": 51.44 },
     "Mersin": { "benzin": 76.40, "motorin": 97.10, "lpg": 51.41 },
-    "Muğla": { "benzin": 76.40, "motorin": 97.10, "lpg": 50.70 },
+    "Muğla": {
+      "benzin": 76.40,
+      "motorin": 97.10,
+      "lpg": 50.70,
+      "ilceler": {
+        "Dalaman": { "benzin": 76.60, "motorin": 97.30, "lpg": 50.70 },
+        "Fethiye": { "benzin": 76.60, "motorin": 97.30, "lpg": 50.70 },
+        "Ortaca": { "benzin": 76.50, "motorin": 97.20, "lpg": 50.70 },
+        "Seydikemer": { "benzin": 76.60, "motorin": 97.30, "lpg": 50.70 }
+      }
+    },
     "Muş": { "benzin": 77.20, "motorin": 98.00, "lpg": 51.78 },
     "Nevşehir": { "benzin": 76.50, "motorin": 97.20, "lpg": 50.79 },
     "Niğde": { "benzin": 76.40, "motorin": 97.10, "lpg": 50.49 },

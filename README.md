@@ -6,7 +6,7 @@ https://omercanbalaban.github.io/istago-fiyatlar/yakit-fiyatlari.json
 
 ## Fiyat nasıl güncellenir?
 
-### Tek komutla (81 il)
+### Tek komutla (81 il ve ilçeleri)
 
 Bu klasörde Terminal'i açıp:
 
@@ -14,8 +14,11 @@ Bu klasörde Terminal'i açıp:
 python3 guncelle.py --gonder
 ```
 
-Betik Petrol Ofisi'nin il bazlı fiyat listesini (KDV dahil) indirir, 81 ilin benzin, motorin ve LPG
+Betik dağıtıcının il ve ilçe bazlı fiyat listesini (KDV dahil) indirir, 81 ilin benzin, motorin ve LPG
 fiyatlarını dosyaya yazar, neyin değiştiğini gösterir ve GitHub'a gönderir. Ek kurulum gerekmez.
+
+İlçelerin çoğu il fiyatıyla aynıdır; dosyaya yalnızca il fiyatından farklı olan ilçeler yazılır
+(ör. İstanbul Anadolu yakası, Gökçeada, Fethiye). Uygulama ilçe yoksa il fiyatını kullanır.
 
 - Sadece görmek için `python3 guncelle.py` çalıştırın: dosya yenilenir ama gönderilmez.
 - Bir ilde bir fiyat yayındakine göre **%15'ten fazla** değişmişse gönderim durur. Rakamlar doğruysa
