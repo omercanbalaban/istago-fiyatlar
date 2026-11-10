@@ -6,6 +6,19 @@ https://omercanbalaban.github.io/istago-fiyatlar/yakit-fiyatlari.json
 
 ## Fiyat nasıl güncellenir?
 
+### Otomatik (varsayılan)
+
+GitHub Actions `guncelle.py`'yi **3 saatte bir** kendiliğinden çalıştırır
+(`.github/workflows/fiyat-guncelle.yml`). Fiyat değiştiyse dosyayı günceller ve yayına alır;
+değişmediyse hiçbir şey yapmaz. Bir şey yapmanız gerekmez.
+
+- %15'ten büyük değişim olursa ya da kaynak sayfa okunamazsa iş durur ve GitHub size e-posta atar.
+  Fiyatları kontrol edin; doğruysa aşağıdaki komutu `--zorla` ile çalıştırın.
+- Hemen güncellemek için: GitHub'da **Actions → Fiyat güncelle → Run workflow**.
+- GitHub, 60 gün hiç commit olmayan depolarda zamanlanmış işleri durdurur. Fiyatlar sık değiştiği
+  için normalde olmaz; durursa Actions sekmesinden yeniden etkinleştirin.
+
+
 ### Tek komutla (81 il ve ilçeleri)
 
 Bu klasörde Terminal'i açıp:
